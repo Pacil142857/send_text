@@ -2,10 +2,24 @@ import csv
 from smtplib import SMTP
 
 
-# This is how the program should work when finished
-# my_email = Sender(username, password, smtp_server)
-# my_email.send(number, message)
+# Credit for creating (most of) this: https://github.com/acamso/demos/blob/master/_email/send_txt_msg.py
+CARRIER_MAP = {
+    'verizon': 'vtext.com',
+    'tmobile': 'tmomail.net',
+    't-mobile': 'tmomail.net',
+    'sprint': 'messaging.sprintpcs.com',
+    'at&t': 'txt.att.net',
+    'boost': 'smsmyboostmobile.com',
+    'cricket': 'sms.cricketwireless.net',
+    'uscellular': 'email.uscc.net',
+    'us cellular': 'email.uscc.net'
+}
 
+
+class CarrierNotFound(Exception):
+    pass
+class InvalidRecipient(Exception):
+    pass
 class NoSMTPServer(Exception):
     pass
 class NoPortNumber(Exception):
@@ -111,3 +125,50 @@ class Sender:
         # A port number was provided, so set it to that
         else:
             self.port = port
+    
+
+    def text(self, recipient, message, carrier=None):
+        '''
+        Send a text message from the Sender's email.
+        
+        Arguments:
+            recipient (str): The phone number to be texted. It's recommended that it includes the SMS gateway domain (e.g. "1234567890@vtext.com").
+            message (str): The message to be sent.
+        
+        Keyword arguments:
+            carrier (str): The carrier of the recipient (e.g. Verizon). Only a few of the most popular carriers are supported; including the SMS gateway domain in recipient is recommended over using this.
+        
+        Raises:
+            InvalidRecipient: The recipient doesn't have an @ symbol in it (and therefore does not contain the SMS gateway domain), and no carrier is provided.
+            CarrierNotFound: A carrier was provided, but it couldn't be found. Please look up the SMS gateway domain of the carrier and include it in the recipient argument.
+        
+        Returns:
+            None
+        '''
+    
+        # The phone number isn't complete, so the program tries to find what's missing
+        if '@' not in recipient:
+            
+            # A carrier isn't provided, so nothing can be done. Raise an exception.
+            if not carrier:
+                raise InvalidRecipient('The recipient of the text message is invalid. It have an @ symbol in it and look like an email address.')
+            
+            carrier = carrier.lower()
+            
+            # If the carrier is found, change the recipient to be a valid SMS gateway
+            if carrier in CARRIER_MAP:
+                recipient += '@' + CARRIER_MAP[carrier]
+            # Carrier wasn't found, raise an exception
+            else:
+                raise CarrierNotFound('A carrier wasn\'t found. Try changing the recipient to include the SMS gateway domain.')
+        
+        # Start the server
+        server = SMTP(self.smtp_server, self.port)
+        server.starttls() # TODO: Support SSL
+        
+        # Log in to the email address
+        server.login(self.email, self.passwd)
+        
+        # Send the mail
+        server.sendmail(self.email, recipient, 'Subject: \n' + message) # TODO: This might be vulnerable to something similar to a SQLi attack. Prevent that from happening.
+        server.quit()
