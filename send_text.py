@@ -1,5 +1,5 @@
 import csv
-from smtplib import SMTP
+from smtplib import SMTP, SMTP_SSL, SMTPConnectError
 
 
 # Credit for creating (most of) this: https://github.com/acamso/demos/blob/master/_email/send_txt_msg.py
@@ -17,6 +17,8 @@ CARRIER_MAP = {
 
 
 class CarrierNotFound(Exception):
+    pass
+class CouldNotConnectToServer(Exception):
     pass
 class InvalidRecipient(Exception):
     pass
@@ -63,7 +65,7 @@ class Sender:
         self.passwd = passwd
         
         # Get the data from the "database" file
-        if not smtp_server or not port:
+        if (not smtp_server) or (not port):
             # Get list of smtp servers and their ports
             smtp_servers = []
             
@@ -162,13 +164,31 @@ class Sender:
             else:
                 raise CarrierNotFound('A carrier wasn\'t found. Try changing the recipient to include the SMS gateway domain.')
         
-        # Start the server
-        server = SMTP(self.smtp_server, self.port)
-        server.starttls() # TODO: Support SSL
+        # If the port is 587, start with TLS
+        if self.port == 587:
+            server = SMTP(self.smtp_server, self.port)
+            server.starttls()
+        
+        # If the port is 465, start with SSL
+        elif self.port == 465:
+            server = SMTP_SSL(self.smtp_server, self.port)
+        
+        # Try both TLS and SSL
+        else:
+            try:
+                server = SMTP(self.smtp_server, self.port)
+            except SMTPConnectError:
+                server = SMTP_SSL(self.smtp_server, self.port)
+            else:
+                server.starttls()
+
+        # Confirm that the server is connected
+        if server.ehlo()[0] != 250:
+            raise CouldNotConnectToServer('Failed to connect to the SMTP server.')
         
         # Log in to the email address
         server.login(self.email, self.passwd)
         
         # Send the mail
-        server.sendmail(self.email, recipient, 'Subject: \n' + message) # TODO: This might be vulnerable to something similar to a SQLi attack. Prevent that from happening.
+        server.sendmail(self.email, recipient, 'Subject:\n\n' + message) # TODO: This might be vulnerable to something similar to a SQLi attack. Prevent that from happening.
         server.quit()
