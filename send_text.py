@@ -15,6 +15,16 @@ CARRIER_MAP = {
     'us cellular': 'email.uscc.net'
 }
 
+# A list of dicts of smtp servers, their email extensions, and their port number
+SMTP_SERVERS = [{'Email extension': 'gmail.com', 'Port number': '587', 'SMTP server': 'smtp.gmail.com'},
+ {'Email extension': 'outlook.com', 'Port number': '587', 'SMTP server': 'smtp.live.com'},
+ {'Email extension': 'yahoo.com', 'Port number': '465', 'SMTP server': 'smtp.mail.yahoo.com'},
+ {'Email extension': 'aol.com', 'Port number': '587', 'SMTP server': 'smtp.aol.com'},
+ {'Email extension': 'hotmail.com', 'Port number': '465', 'SMTP server': 'smtp.live.com'},
+ {'Email extension': 'comcast.net', 'Port number': '587', 'SMTP server': 'smtp.comcast.net'},
+ {'Email extension': 'verizon.net', 'Port number': '465', 'SMTP server': 'outgoing.verizon.net'},
+ {'Email extension': 'icloud.com', 'Port number': '587', 'SMTP server': 'smtp.mail.me.com'},
+ {'Email extension': 'zohomail.com', 'Port number': '465', 'SMTP server': 'smtp.zoho.com'}]
 
 class CarrierNotFound(Exception):
     pass
@@ -63,25 +73,6 @@ class Sender:
         # Set email and password
         self.email = email
         self.passwd = passwd
-        
-        # Get the data from the "database" file
-        if (not smtp_server) or (not port):
-            # Get list of smtp servers and their ports
-            smtp_servers = []
-            
-            # Open the "database" of smtp servers
-            with open('smtp_servers.csv') as f:
-                reader = csv.reader(f)
-                
-                fields = next(reader)
-                cur_row = dict()
-                
-                # Read the file and get the data
-                # The data will be a list of dictionaries
-                for row in reader:
-                    for i, cell in enumerate(row):
-                        cur_row[fields[i]] = cell
-                    smtp_servers.append(cur_row.copy())
 
         if not smtp_server:
             # Try to get the email extension from the email
@@ -92,7 +83,7 @@ class Sender:
 
             else:
                 # Try to find the SMTP server from the email extension
-                for server in smtp_servers:
+                for server in SMTP_SERVERS:
                     if email_ext == server['Email extension']:
                         smtp_server = server['SMTP server']
                         self.smtp_server = smtp_server
@@ -115,7 +106,7 @@ class Sender:
         
         if not port:
             # Try to find the port using the SMTP server
-            for server in smtp_servers:
+            for server in SMTP_SERVERS:
                 
                 if smtp_server == server['SMTP server']:
                     self.port = server['Port number']
