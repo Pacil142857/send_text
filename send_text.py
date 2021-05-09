@@ -134,7 +134,7 @@ class Sender:
         Send a text message from the Sender's email.
         
         Arguments:
-            recipient (str): The phone number to be texted. It's recommended that it includes the SMS gateway domain (e.g. "1234567890@vtext.com").
+            recipient (str): The phone number to be texted. It's recommended that it includes the SMS gateway domain (e.g. "1234567890@vtext.com"). Otherwise, the format should be "1234567890".
             message (str): The message to be sent.
         
         Keyword arguments:
