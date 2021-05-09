@@ -53,8 +53,8 @@ class Sender:
             port (int): The port number to be connected to. Ex: 587
         
         Raises:
-            NoSMTPServer: An SMTP server was not provided nor found, so pass one as an argument.
             NoPortNumber: A port number was not provided nor found, so pass one as an argument.
+            NoSMTPServer: An SMTP server was not provided nor found, so pass one as an argument.
         
         Returns:
             None
@@ -141,8 +141,9 @@ class Sender:
             carrier (str): The carrier of the recipient (e.g. Verizon). Only a few of the most popular carriers are supported; including the SMS gateway domain in recipient is recommended over using this.
         
         Raises:
-            InvalidRecipient: The recipient doesn't have an @ symbol in it (and therefore does not contain the SMS gateway domain), and no carrier is provided.
             CarrierNotFound: A carrier was provided, but it couldn't be found. Please look up the SMS gateway domain of the carrier and include it in the recipient argument.
+            CouldNotConnectToServer: The SMTP server could not maintain a connection.
+            InvalidRecipient: The recipient doesn't have an @ symbol in it (and therefore does not contain the SMS gateway domain), and no carrier is provided.
         
         Returns:
             None
