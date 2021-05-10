@@ -41,17 +41,20 @@ SMTP_SERVERS = [{'Email extension': 'gmail.com', 'Port number': '587', 'SMTP ser
  {'Email extension': 'icloud.com', 'Port number': '587', 'SMTP server': 'smtp.mail.me.com'},
  {'Email extension': 'zohomail.com', 'Port number': '465', 'SMTP server': 'smtp.zoho.com'}]
 
-class CarrierNotFound(Exception):
+
+class SendTextError(Exception):
+    '''Base class for all exceptions'''
+class CarrierNotFound(SendTextError):
     pass
-class CouldNotConnectToServer(Exception):
+class CouldNotConnectToServer(SendTextError):
     pass
-class InvalidRecipient(Exception):
+class InvalidRecipient(SendTextError):
     pass
-class NoPortNumber(Exception):
+class NoPortNumber(SendTextError):
     pass
-class NoSMTPServer(Exception):
+class NoSMTPServer(SendTextError):
     pass
-class SenderNotStarted(Exception):
+class SenderNotStarted(SendTextError):
     pass
 
 
