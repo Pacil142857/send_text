@@ -50,6 +50,8 @@ class NoPortNumber(Exception):
     pass
 class NoSMTPServer(Exception):
     pass
+class SenderNotStarted(Exception):
+    pass
 
 
 class Sender:
@@ -181,6 +183,7 @@ class Sender:
         Raises:
             CarrierNotFound: A carrier was provided, but it couldn't be found. Please look up the SMS gateway domain of the carrier and include it in the recipient argument.
             InvalidRecipient: The recipient doesn't have an @ symbol in it (and therefore does not contain the SMS gateway domain), and no carrier is provided.
+            SenderNotStarted: The Sender object used has not been started. You probably forgot to call Sender.start and Sender.quit if you see this.
         
         Returns:
             None
@@ -203,7 +206,10 @@ class Sender:
                 raise CarrierNotFound('A carrier wasn\'t found. Try changing the recipient to include the SMS gateway domain.')
         
         # Send the mail
-        self.server.sendmail(self.email, recipient, 'Subject:\n\n' + message) # TODO: This might be vulnerable to something similar to a SQLi attack. Prevent that from happening.
+        try:
+            self.server.sendmail(self.email, recipient, 'Subject:\n\n' + message) # TODO: This might be vulnerable to something similar to a SQLi attack. Prevent that from happening.
+        except AttributeError:
+            raise SenderNotStarted('The Sender object has not been started. Did you forget to call Sender.start (and Sender.quit)?')
     
     
     def text_image(self, recipient, image, carrier=None):
@@ -220,6 +226,7 @@ class Sender:
         Raises:
             CarrierNotFound: A carrier was provided, but it couldn't be found. Please look up the MMS gateway domain of the carrier and include it in the recipient argument.
             InvalidRecipient: The recipient doesn't have an @ symbol in it (and therefore does not contain the MMS gateway domain), and no carrier is provided.
+            SenderNotStarted: The Sender object used has not been started. You probably forgot to call Sender.start and Sender.quit if you see this.
         
         Returns:
             None
@@ -252,4 +259,7 @@ class Sender:
         msg.attach(img)
         
         # Send the mail
-        self.server.sendmail(self.email, recipient, msg.as_string())
+        try:
+            self.server.sendmail(self.email, recipient, msg.as_string())
+        except AttributeError:
+            raise SenderNotStarted('The Sender object has not been started. Did you forget to call Sender.start (and Sender.quit)?')
