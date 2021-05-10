@@ -234,7 +234,7 @@ class Sender:
             
             carrier = carrier.lower()
             
-            # If the carrier is found, change the recipient to be a valid SMS gateway
+            # If the carrier is found, change the recipient to be a valid MMS gateway
             if carrier in MMS_CARRIER_MAP:
                 recipient += '@' + MMS_CARRIER_MAP[carrier]
             # Carrier wasn't found, raise an exception
@@ -242,12 +242,14 @@ class Sender:
                 raise CarrierNotFound('A carrier wasn\'t found. Try changing the recipient to include the MMS gateway domain.')
         
         # Get the image data
-        with open(image, 'rb') as img:
-            img_data = img.read()
+        with open(image, 'rb') as f:
+            img_data = f.read()
         
         # Attach the image to a blank message
         msg = MIMEMultipart()
-        msg.attach(MIMEImage(img_data, name=os.path.basename(image)))
+        img = MIMEImage(img_data, name=os.path.basename(image))
+        img.add_header('Content-Disposition', 'attachment; filename= %s' % os.path.basename(image))
+        msg.attach(img)
         
         # Send the mail
         self.server.sendmail(self.email, recipient, msg.as_string())
