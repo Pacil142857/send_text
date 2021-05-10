@@ -2,6 +2,7 @@ import os
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from smtplib import SMTP, SMTP_SSL, SMTPConnectError
+from typing import Union
 
 
 # Credit for creating (most of) this: https://github.com/acamso/demos/blob/master/_email/send_txt_msg.py
@@ -60,24 +61,27 @@ class Sender:
     Attributes:
         email (str): The email address being used
         passwd (str): The password of the email address
+        port (int): The port used to connect to the SMTP server
+        server (SMTP/SMTP_SSL): The object used to make & maintain a connection with the SMTP server
         smtp_server (str): The SMTP server that will be connected to
-        port (str): The port used to connect to the SMTP server
     
     Methods:
         __init__: Create a Sender with a given email & password (and optionally an smtp server and port)
-    '''
+        quit: Close the connection from the SMTP server
+        start: Connect to the SMTP server and log in
+        text: Send a text message to a given phone number
+        text_image: Text an image to a given phone number
+    '''    
     
-    def __init__(self, email, passwd, smtp_server=None, port=None):
-        '''Create a Sender to send text messages.
-        
-        Arguments:
-            email (str): The email to be used. Ex: johnsmith@outlook.com
+    def __init__(self, email: str, passwd: str, smtp_server: str=None, port: str=None) -> None:
+        '''Create a Sender object to send text messages.
+
+        Args:
+            email (str): The email to be used. Ex: johnsmith@gmail.com
             passwd (str): The password of the email. Ex: password123
-        
-        Keyword arguments:
-            smtp_server (str): The SMTP server of the email's domain. Ex: smtp.gmail.com
-            port (int): The port number to be connected to. Ex: 587
-        
+            smtp_server (str, optional): The SMTP server of the email's domain. Ex: smtp.gmail.com.
+            port (str, optional): The port number to be connected to. Ex: 587.
+
         Raises:
             NoPortNumber: A port number was not provided nor found, so pass one as an argument.
             NoSMTPServer: An SMTP server was not provided nor found, so pass one as an argument.
@@ -87,8 +91,8 @@ class Sender:
         '''
         
         # Set email and password
-        self.email = email
-        self.passwd = passwd
+        self.email: str = email
+        self.passwd: str = passwd
 
         if not smtp_server:
             # Try to get the email extension from the email
@@ -102,12 +106,12 @@ class Sender:
                 for server in SMTP_SERVERS:
                     if email_ext == server['Email extension']:
                         smtp_server = server['SMTP server']
-                        self.smtp_server = smtp_server
+                        self.smtp_server: str = smtp_server
                         
                         # Get the port if it isn't provided
                         if not port:
                             port = server['Port number']
-                            self.port = port
+                            self.port: int = port
                             return
 
                         break
@@ -118,14 +122,14 @@ class Sender:
         
         # An SMTP server was provided, so set it to that
         else:
-            self.smtp_server = smtp_server
+            self.smtp_server: str = smtp_server
         
         if not port:
             # Try to find the port using the SMTP server
             for server in SMTP_SERVERS:
                 
                 if smtp_server == server['SMTP server']:
-                    self.port = server['Port number']
+                    self.port: int = server['Port number']
                     return
 
             # A port wasn't found, so an exception is raised
@@ -133,26 +137,26 @@ class Sender:
         
         # A port number was provided, so set it to that
         else:
-            self.port = port
+            self.port: int = port
     
 
     def start(self):
         '''Connects to the SMTP server and logs in.'''
         # If the port is 587, start with TLS
         if self.port == 587:
-            self.server = SMTP(self.smtp_server, self.port)
+            self.server: SMTP = SMTP(self.smtp_server, self.port)
             self.server.starttls()
         
         # If the port is 465, start with SSL
         elif self.port == 465:
-            self.server = SMTP_SSL(self.smtp_server, self.port)
+            self.server: SMTP_SSL = SMTP_SSL(self.smtp_server, self.port)
         
         # Try both TLS and SSL
         else:
             try:
-                self.server = SMTP(self.smtp_server, self.port)
+                self.server: Union[SMTP, SMTP_SSL] = SMTP(self.smtp_server, self.port)
             except SMTPConnectError:
-                self.server = SMTP_SSL(self.smtp_server, self.port)
+                self.server: Union[SMTP, SMTP_SSL] = SMTP_SSL(self.smtp_server, self.port)
             else:
                 self.server.starttls()
 
@@ -169,25 +173,21 @@ class Sender:
         self.server.quit()
 
 
-    def text(self, recipient, message, carrier=None):
-        '''
-        Send a text message from the Sender's email.
-        
-        Arguments:
-            recipient (str): The phone number to be texted. It's recommended that it includes the SMS gateway domain (e.g. "1234567890@vtext.com"). Otherwise, the format should be "1234567890".
-            message (str): The message to be sent.
-        
-        Keyword arguments:
-            carrier (str): The carrier of the recipient (e.g. Verizon). Only a few of the most popular carriers are supported; including the SMS gateway domain in recipient is recommended over using this.
-        
+    def text(self, recipient: str, message: str, carrier: str=None) -> None:
+        '''Send a text message from the Sender's email
+
+        Args:
+            recipient (str): The phone number to be texted.
+                It's recommended that it includes the SMS gateway domain (e.g. "1234567890@vtext.com"). Otherwise, the format should be "1234567890".
+            message (str): The message to be sent
+            carrier (str, optional): The carrier of the recipient (e.g. Verizon). This is only required if you don't include the SMS gateway domain in recipient.
+                Only a few of the most popular carriers are supported; including the SMS gateway domain in recipient is recommended over using this.
+
         Raises:
             CarrierNotFound: A carrier was provided, but it couldn't be found. Please look up the SMS gateway domain of the carrier and include it in the recipient argument.
             InvalidRecipient: The recipient doesn't have an @ symbol in it (and therefore does not contain the SMS gateway domain), and no carrier is provided.
             SenderNotStarted: The Sender object used has not been started. You probably forgot to call Sender.start and Sender.quit if you see this.
-        
-        Returns:
-            None
-        '''
+        '''        
     
         # The phone number isn't complete, so the program tries to find what's missing
         if '@' not in recipient:
@@ -212,25 +212,21 @@ class Sender:
             raise SenderNotStarted('The Sender object has not been started. Did you forget to call Sender.start (and Sender.quit)?')
     
     
-    def text_image(self, recipient, image, carrier=None):
-        '''
-        Text the recipient an image from the Sender's email.
-        
-        Arguments:
-            recipient (str): The phone number to be texted. It's recommended that it includes the MMS gateway domain (e.g. "1234567890@vzwpix.com"). Otherwise, the format should be "1234567890".
+    def text_image(self, recipient: str, image: str, carrier: str=None) -> None:
+        '''Text the recipient an image from the Sender's email.
+
+        Args:
+            recipient (str): The phone number to be texted.
+                It's recommended that it includes the MMS gateway domain (e.g. "1234567890@vzwpix.com"). Otherwise, the format should be "1234567890".
             image (str): The path of the image to be sent. Ex: "./path/to/image.png"
-        
-        Keyword arguments:
-            carrier (str): The carrier of the recipient (e.g. Verizon). Only a few of the most popular carriers are supported; including the MMS gateway domain in recipient is recommended over using this.
-        
+            carrier (str, optional): The carrier of the recipient (e.g. Verizon). This is only required if you don't include the MMS gateway domain in recipient.
+                Only a few of the most popular carriers are supported; including the MMS gateway domain in recipient is recommended over using this.
+
         Raises:
             CarrierNotFound: A carrier was provided, but it couldn't be found. Please look up the MMS gateway domain of the carrier and include it in the recipient argument.
             InvalidRecipient: The recipient doesn't have an @ symbol in it (and therefore does not contain the MMS gateway domain), and no carrier is provided.
             SenderNotStarted: The Sender object used has not been started. You probably forgot to call Sender.start and Sender.quit if you see this.
-        
-        Returns:
-            None
-        '''
+        '''        
     
         # The phone number isn't complete, so the program tries to find what's missing
         if '@' not in recipient:
