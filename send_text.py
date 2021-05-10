@@ -76,6 +76,7 @@ class Sender:
         start: Connect to the SMTP server and log in
         text: Send a text message to a given phone number
         text_image: Text an image to a given phone number
+        text_video: Text a video to a given phone number
     '''    
     
     def __init__(self, email: str, passwd: str, smtp_server: str=None, port: str=None) -> None:
@@ -255,7 +256,7 @@ class Sender:
         
         # Create the image and have its filename be retained upon sending it
         img = MIMEImage(img_data, name=os.path.basename(image))
-        img.add_header('Content-Disposition', 'attachment; filename= %s' % os.path.basename(image))
+        img.add_header('Content-Disposition', 'attachment', filename=os.path.basename(image))
         
         # Attach the image to a blank message
         msg = MIMEMultipart()
