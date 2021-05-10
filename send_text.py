@@ -1,4 +1,6 @@
 import os
+from email.encoders import encode_base64
+from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from smtplib import SMTP, SMTP_SSL, SMTPConnectError
@@ -251,11 +253,68 @@ class Sender:
         with open(image, 'rb') as f:
             img_data = f.read()
         
-        # Attach the image to a blank message
-        msg = MIMEMultipart()
+        # Create the image and have its filename be retained upon sending it
         img = MIMEImage(img_data, name=os.path.basename(image))
         img.add_header('Content-Disposition', 'attachment; filename= %s' % os.path.basename(image))
+        
+        # Attach the image to a blank message
+        msg = MIMEMultipart()
         msg.attach(img)
+        
+        # Send the mail
+        try:
+            self.server.sendmail(self.email, recipient, msg.as_string())
+        except AttributeError:
+            raise SenderNotStarted('The Sender object has not been started. Did you forget to call Sender.start (and Sender.quit)?')
+
+
+    def text_video(self, recipient: str, video: str, carrier: str=None) -> None:
+        '''Text the recipient a video from the Sender's email.
+
+        Args:
+            recipient (str): The phone number to be texted.
+                It's recommended that it includes the MMS gateway domain (e.g. "1234567890@vzwpix.com"). Otherwise, the format should be "1234567890".
+            video (str): The path of the video to be sent. Ex: "./path/to/image.png"
+            carrier (str, optional): The carrier of the recipient (e.g. Verizon). This is only required if you don't include the MMS gateway domain in recipient.
+                Only a few of the most popular carriers are supported; including the MMS gateway domain in recipient is recommended over using this.
+
+        Raises:
+            CarrierNotFound: A carrier was provided, but it couldn't be found. Please look up the MMS gateway domain of the carrier and include it in the recipient argument.
+            InvalidRecipient: The recipient doesn't have an @ symbol in it (and therefore does not contain the MMS gateway domain), and no carrier is provided.
+            SenderNotStarted: The Sender object used has not been started. You probably forgot to call Sender.start and Sender.quit if you see this.
+        '''        
+    
+        # The phone number isn't complete, so the program tries to find what's missing
+        if '@' not in recipient:
+            
+            # A carrier isn't provided, so nothing can be done. Raise an exception.
+            if not carrier:
+                raise InvalidRecipient('The recipient of the text message is invalid. It have an @ symbol in it and look like an email address.')
+            
+            carrier = carrier.lower()
+            
+            # If the carrier is found, change the recipient to be a valid MMS gateway
+            if carrier in MMS_CARRIER_MAP:
+                recipient += '@' + MMS_CARRIER_MAP[carrier]
+            # Carrier wasn't found, raise an exception
+            else:
+                raise CarrierNotFound('A carrier wasn\'t found. Try changing the recipient to include the MMS gateway domain.')
+        
+        # Get the video data
+        with open(video, 'rb') as f:
+            vid_data = f.read()
+        
+        # Create the video and encode it
+        vid = MIMEBase('application', 'octet-stream')
+        vid.set_payload(vid_data)
+        encode_base64(vid)
+        
+        # Have the video retain its filename after being sent
+        vid.add_header('Content-Disposition', 'attachment', filename=os.path.basename(video))
+        
+        # Attach the video to a blank message
+        msg = MIMEMultipart()
+        msg.attach(vid)
         
         # Send the mail
         try:
