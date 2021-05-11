@@ -179,6 +179,17 @@ class Sender:
         self.server.quit()
 
 
+    def __enter__(self):
+        '''Connect to the SMTP server and log in'''
+        self.start()
+        return self
+    
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        '''Disconnect from the SMTP server'''
+        self.quit()
+
+
     def text(self, recipient: str, message: str, carrier: str=None) -> None:
         '''Send a text message from the Sender's email
 
