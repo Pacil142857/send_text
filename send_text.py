@@ -3,23 +3,12 @@ from email.encoders import encode_base64
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from smtplib import SMTP, SMTP_SSL, SMTPConnectError
 from typing import Union
 
 
-# Credit for creating (most of) this: https://github.com/acamso/demos/blob/master/_email/send_txt_msg.py
-SMS_CARRIER_MAP = {
-    'verizon': 'vtext.com',
-    'tmobile': 'tmomail.net',
-    't-mobile': 'tmomail.net',
-    'sprint': 'messaging.sprintpcs.com',
-    'at&t': 'txt.att.net',
-    'boost': 'smsmyboostmobile.com',
-    'cricket': 'sms.cricketwireless.net',
-    'uscellular': 'email.uscc.net',
-    'us cellular': 'email.uscc.net'
-}
-
+# A dictionary mapping each carrier to its MMS domain
 MMS_CARRIER_MAP = {
     'verizon': 'vzwpix.com',
     'tmobile': 'tmomail.net',
@@ -195,14 +184,14 @@ class Sender:
 
         Args:
             recipient (str): The phone number to be texted.
-                It's recommended that it includes the SMS gateway domain (e.g. "1234567890@vtext.com"). Otherwise, the format should be "1234567890".
+                It's recommended that it includes the MMS gateway domain (e.g. "1234567890@vzwpix.com"). Otherwise, the format should be "1234567890".
             message (str): The message to be sent
-            carrier (str, optional): The carrier of the recipient (e.g. Verizon). This is only required if you don't include the SMS gateway domain in recipient.
-                Only a few of the most popular carriers are supported; including the SMS gateway domain in recipient is recommended over using this.
+            carrier (str, optional): The carrier of the recipient (e.g. Verizon). This is only required if you don't include the MMS gateway domain in recipient.
+                Only a few of the most popular carriers are supported; including the MMS gateway domain in recipient is recommended over using this.
 
         Raises:
-            CarrierNotFound: A carrier was provided, but it couldn't be found. Please look up the SMS gateway domain of the carrier and include it in the recipient argument.
-            InvalidRecipient: The recipient doesn't have an @ symbol in it (and therefore does not contain the SMS gateway domain), and no carrier is provided.
+            CarrierNotFound: A carrier was provided, but it couldn't be found. Please look up the MMS gateway domain of the carrier and include it in the recipient argument.
+            InvalidRecipient: The recipient doesn't have an @ symbol in it (and therefore does not contain the MMS gateway domain), and no carrier is provided.
             SenderNotStarted: The Sender object used has not been started. You probably forgot to call Sender.start and Sender.quit if you see this.
         '''        
     
@@ -215,16 +204,19 @@ class Sender:
             
             carrier = carrier.lower()
             
-            # If the carrier is found, change the recipient to be a valid SMS gateway
-            if carrier in SMS_CARRIER_MAP:
-                recipient += '@' + SMS_CARRIER_MAP[carrier]
+            # If the carrier is found, change the recipient to be a valid MMS gateway
+            if carrier in MMS_CARRIER_MAP:
+                recipient += '@' + MMS_CARRIER_MAP[carrier]
             # Carrier wasn't found, raise an exception
             else:
-                raise CarrierNotFound('A carrier wasn\'t found. Try changing the recipient to include the SMS gateway domain.')
+                raise CarrierNotFound('A carrier wasn\'t found. Try changing the recipient to include the MMS gateway domain.')
+        
+        # Create the message
+        msg = MIMEText(message, 'plain', 'utf-8')
         
         # Send the mail
         try:
-            self.server.sendmail(self.email, recipient, 'Subject:\n\n' + message) # TODO: This might be vulnerable to something similar to a SQLi attack. Prevent that from happening.
+            self.server.sendmail(self.email, recipient, msg.as_string())
         except AttributeError:
             raise SenderNotStarted('The Sender object has not been started. Did you forget to call Sender.start (and Sender.quit)?')
     
