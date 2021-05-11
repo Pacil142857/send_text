@@ -9,16 +9,31 @@ from typing import Union
 
 
 # A dictionary mapping each carrier to its MMS domain
+# A lot of the data in this dictionary is from https://20somethingfinance.com/how-to-send-text-messages-sms-via-email-for-free/
+# This is by no means a comprehensive list. It's just a list of some of the more popular carriers in the U.S.
 MMS_CARRIER_MAP = {
-    'verizon': 'vzwpix.com',
-    'tmobile': 'tmomail.net',
-    't-mobile': 'tmomail.net',
-    'sprint': 'pm.sprint.com',
     'at&t': 'mms.att.net',
     'boost': 'myboostmobile.com',
+    'boost mobile': 'myboostmobile.com',
+    'c spire': 'cspire1.com',
+    'c-spire': 'cspire1.com',
     'cricket': 'mms.cricketwireless.net',
+    'google fi': 'msg.fi.google.com',
+    'metro pcs': 'mymetropcs.com',
+    'metro': 'mymetropcs.com',
+    'mint mobile': 'mailmymobile.net',
+    'mint': 'mailmymobile.net',
+    'sprint': 'pm.sprint.com',
+    'tmobile': 'tmomail.net',
+    't-mobile': 'tmomail.net',
+    'tracfone': 'mmst5.tracfone.com',
     'uscellular': 'mms.uscc.net',
-    'us cellular': 'mms.uscc.net'
+    'us cellular': 'mms.uscc.net',
+    'verizon': 'vzwpix.com',
+    'virgin mobile': 'vmpix.com',
+    'virgin': 'vmpix.com',
+    'xfinity mobile': 'mypixmessages.com',
+    'xfinity': 'mypixmessages.com'
 }
 
 # A list of dicts of smtp servers, their email extensions, and their port number
