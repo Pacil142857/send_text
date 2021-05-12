@@ -30,7 +30,8 @@ When sending a text message, the first thing passed should be the recipient's ph
 Ex: 1234567890@vzwpix.com (Verizon), 1234567890@mms.att.net (AT&T)
 
 Usage:
-with Sender("johnsmith@gmail.com", "password123", "smtp.live.com", 587) as sender:
+import send_text
+with send_text.Sender("johnsmith@gmail.com", "password123", "smtp.gmail.com", 587) as sender:
     sender.text("1234567890@mms.att.net", "I sent this text message using the send_text module!")
 '''
 
