@@ -1,3 +1,17 @@
+'''A simple module for sending text messages.
+
+To send messages, first create a Sender object. It must be passed an email that will send the text messages and its password.
+It's highly recommended that you also pass the SMTP server and the port you want to use to connect to the email address.
+Then, the Sender must be started. Using the with statement is recommended over using Sender.start and Sender.quit.
+After that, text messages can be sent with Sender.text, Sender.text_image, and Sender.text_video.
+When sending a text message, the first thing passed should be the recipient's phone number, followed by an @ symbol, and then the MMS gateway domain.
+Ex: 1234567890@vzwpix.com (Verizon), 1234567890@mms.att.net (AT&T)
+
+Usage:
+with Sender("johnsmith@gmail.com", "password123", "smtp.live.com", 587) as sender:
+    sender.text("1234567890@mms.att.net", "I sent this text message using the send_text module!")
+'''
+
 import os
 from email.encoders import encode_base64
 from email.mime.base import MIMEBase
