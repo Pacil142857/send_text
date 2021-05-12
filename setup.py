@@ -27,7 +27,7 @@ with open('README.md') as f:
 
 setup(
     name='send_text',
-    version='1.0.0',
+    version='1.0.1',
     description='A simple Python module to send text messages',
     long_description=long_desc,
     long_description_content_type='text/markdown',
