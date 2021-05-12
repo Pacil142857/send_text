@@ -257,7 +257,7 @@ class Sender:
             
             # A carrier isn't provided, so nothing can be done. Raise an exception.
             if not carrier:
-                raise InvalidRecipient('The recipient of the text message is invalid. It have an @ symbol in it and look like an email address.')
+                raise InvalidRecipient('The recipient of the text message is invalid. It should have an @ symbol in it and look like an email address.')
             
             carrier = carrier.lower()
             
@@ -308,7 +308,7 @@ class Sender:
             
             # A carrier isn't provided, so nothing can be done. Raise an exception.
             if not carrier:
-                raise InvalidRecipient('The recipient of the text message is invalid. It have an @ symbol in it and look like an email address.')
+                raise InvalidRecipient('The recipient of the text message is invalid. It should have an @ symbol in it and look like an email address.')
             
             carrier = carrier.lower()
             
