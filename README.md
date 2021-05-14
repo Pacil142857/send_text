@@ -39,3 +39,29 @@ try:
 finally:
     sender.quit()
 ```
+
+## FAQ
+
+### **Q: Why am I getting an SMTPAuthenticationError even though my password is correct?**
+
+A: A lot of email providers (such as Gmail and Yahoo!) will restrict access to who, or what, can access your email. In Gmail's case, you must log into the Google account, go to the [Less secure apps](https://myaccount.google.com/lesssecureapps) section, and turn "Allow less secure apps" on. Every email provider's way of doing this is different, so look up how to do it for your email provider.
+
+### **Q: What formatting is used for the recipient?**
+
+A: When calling `Sender.text`, `Sender.text_image`, or `Sender.text_video`, the first argument (`recipient`) should follow this formatting: `1234567890@MMSgatewaydomain.com`. The part before the @ symbol is the phone number with no spaces, hyphens, or anything in between the numbers. The part after the @ symbol is the MMS gateway domain (for more information about this, see the next question). `1234567890` is also an acceptable format, but it's not recommended. If this format is used, the carrier will have to be specified in the third argument, and only a few carriers (the more popular ones in the US) are supported.
+
+### **Q: What is an MMS gateway domain?**
+
+A: An MMS gateway allows a phone to receive multimedia content, such as text and images. The MMS gateway domain is the domain used for that. The MMS gateway domain differs between mobile carriers, so look up your carrier's MMS gateway domain. For example, Verizon's MMS gateway domain is `vzwpix.com`. AT&T's MMS gateway domain is `mms.att.net`.
+
+### **Q: I tried to send a gif but it didn't send. Why is that?**
+
+A: Unfortunately, this module doesn't support sending `.gif` files. If you find a way to support sending `.gif` files, consider making a [pull request](https://github.com/Pacil142857/send_text/pulls) on Github.
+
+### **Q: Why don't you just use Twilio?**
+
+A: If you don't pay for Twilio, every message is prefixed with a message saying that the text is sent from a free account on Twilio. Additionally, there are limits on how many text messages you can send.
+
+### **Q: I have another issue that isn't listed here.**
+
+A: If it's an issue with the module, please create an [issue](https://github.com/Pacil142857/send_text/issues) on Github. You can also contact me at [austinmcgregor2@gmail.com](mailto:austinmcgregor2@gmail.com).
